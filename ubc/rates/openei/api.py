@@ -4,8 +4,8 @@ import pandas as pd
 from dataclasses import dataclass, field
 from urllib.parse import urljoin
 
-from ubc.rates.abstract import AbstractRate
-from ubc.rates.openei.schemas import URDBMeta, Energy, Demand, FlatDemand, Meter
+from ..abstract import AbstractRate
+from .schemas import URDBMeta, Energy, Demand, FlatDemand, Meter
 
 
 root = "https://api.openei.org"

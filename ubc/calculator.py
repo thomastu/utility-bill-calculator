@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from pandas import Timedelta
 
-from ubc.rates.openei.api import RateSchedule
+from ubc.rates.abstract import AbstractRate
 
 
 DELTA_HOUR = Timedelta("1 hour")
@@ -12,7 +12,7 @@ class SingleSite:
     """Single-Site Bill Calculator
     """
 
-    schedule: RateSchedule
+    schedule: AbstractRate
 
     def calculate_energy_charges(self, load):
         """
