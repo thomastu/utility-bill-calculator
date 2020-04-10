@@ -1,5 +1,10 @@
-from ubc.rates.openei.api import RateSchedule
 from dataclasses import dataclass
+from pandas import Timedelta
+
+from ubc.rates.openei.api import RateSchedule
+
+
+DELTA_HOUR = Timedelta("1 hour")
 
 
 @dataclass
@@ -113,14 +118,15 @@ class SingleSite:
         cost = num_days*self.schedule.meter
         return cost.rename("cost")
 
-    def calculate_total(self, load_kw, interval=1):
+    def calculate_total(self, load_kw):
         """
         Args:
             load_kw (pd.Series): timestamp series of demand data.
-            interval (float): Fraction of an hour for timestamp.
         """
+        
+        interval = load_kw.index.freq.delta / DELTA_HOUR
         energy_charges = self.calculate_energy_charges(load_kw*interval)["cost"].resample("M").sum()
         demand_charges = self.calculate_demand_charges(load_kw)["cost"].sum(axis=1)
         flatdemand_charges = self.calculate_flatdemand_charges(load_kw)["cost"]
-        meter_charges = self.calculate_meter_charges(load_kw)["cost"]
+        meter_charges = self.calculate_meter_charges(load_kw)
         return (meter_charges + energy_charges + demand_charges + flatdemand_charges).rename("total_cost")
