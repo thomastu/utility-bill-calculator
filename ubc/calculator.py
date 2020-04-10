@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class BillCalculator:
+class SingleSite:
     """Single-Site Bill Calculator
     """
 
@@ -74,7 +74,6 @@ class BillCalculator:
             columns="schedule_id", values=[load.name, f"{load.name}_rate", f"cost"])
         return rates.resample("M").max()
 
-
     def calculate_flatdemand_charges(self, load):
         """
         Args:
@@ -103,6 +102,17 @@ class BillCalculator:
         rates.rename(columns={"rate": f"{load.name}_rate"}, inplace=True)
         return rates.set_index(load.index.name).sort_index()
     
+    def calculate_meter_charges(self, load):
+        """
+        Args:
+            load (pd.Series): timestamp/series of demand data.
+        """
+        # Meter charges exist per-diem, the actual aggregate load value doesn't matter.
+        # Aggregate to dailies, then count up the months.
+        num_days = load.resample("D").nearest().resample("M").count()
+        cost = num_days*self.schedule.meter
+        return cost.rename("cost")
+
     def calculate_total(self, load_kw, interval=1):
         """
         Args:
@@ -112,4 +122,5 @@ class BillCalculator:
         energy_charges = self.calculate_energy_charges(load_kw*interval)["cost"].resample("M").sum()
         demand_charges = self.calculate_demand_charges(load_kw)["cost"].sum(axis=1)
         flatdemand_charges = self.calculate_flatdemand_charges(load_kw)["cost"]
-        return (energy_charges + demand_charges + flatdemand_charges).rename("total_cost")
+        meter_charges = self.calculate_meter_charges(load_kw)["cost"]
+        return (meter_charges + energy_charges + demand_charges + flatdemand_charges).rename("total_cost")

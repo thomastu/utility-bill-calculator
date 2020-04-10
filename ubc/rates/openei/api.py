@@ -136,3 +136,8 @@ class RateSchedule(AbstractRate):
         schedule["month"] += 1
         schedule["rate"] = schedule["schedule_id"].map(rate)
         return schedule
+
+    @property
+    def meter(self):
+        rate = self.rate
+        return Meter.path.search(rate)

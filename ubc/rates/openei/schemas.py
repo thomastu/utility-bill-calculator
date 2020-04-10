@@ -49,3 +49,8 @@ class FlatDemand:
     path = URDBPath("flatdemandstructure[].rate")
 
     schedule = URDBPath("flatdemandmonths")
+
+
+class Meter:
+    
+    path = URDBPath("fixedchargefirstmeter")
