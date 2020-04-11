@@ -1,7 +1,5 @@
 # Quickstart
 
-Install
-
 ```
 pip install ubc
 ```
@@ -31,7 +29,10 @@ idx = pd.date_range(start="Jan 1st, 2019", end="Dec 31st, 2019 23:59:00", freq="
 load = pd.Series(pd.np.random.random(len(idx)), index=idx)
 load.name = "kWh"
 
-calculator.calculate_energy_charges()
+calculator.calculate_energy_charges(load)
+calculator.calculate_demand_charges(load)
+calculator.calculate_flatdemand_charges(load)
+calculator.calculate_meter_charges(load)
 ```
 
 # Disclaimer
