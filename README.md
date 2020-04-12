@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/254711772.svg)](https://zenodo.org/badge/latestdoi/254711772)
+
 # Quickstart
 
 ```
