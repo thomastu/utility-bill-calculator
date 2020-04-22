@@ -7,6 +7,10 @@ from ubc.rates.abstract import AbstractRate
 DELTA_HOUR = Timedelta("1 hour")
 
 
+class UnknownRateStructure(Exception):
+    pass
+
+
 @dataclass
 class SingleSite:
     """Single-Site Bill Calculator
@@ -107,15 +111,23 @@ class SingleSite:
         rates.rename(columns={"rate": f"{load.name}_rate"}, inplace=True)
         return rates.set_index(load.index.name).sort_index()
     
-    def calculate_meter_charges(self, load):
+    def calculate_meter_charges(self, load, charge_type=None):
         """
         Args:
             load (pd.Series): timestamp/series of demand data.
+            charge_type (str): if the 
         """
-        # Meter charges exist per-diem, the actual aggregate load value doesn't matter.
-        # Aggregate to dailies, then count up the months.
-        num_days = load.resample("D").nearest().resample("M").count()
-        cost = num_days*self.schedule.meter
+        charge_unit = self.schedule.meter_charge_unit
+        if charge_unit == "$/day":
+            # Meter charges exist per-diem, the actual aggregate load value doesn't matter.
+            # Aggregate to dailies, then count up the months.
+            N = load.resample("D").nearest().resample("M").count()
+        elif charge_unit == "$/month":
+            # if meter charges exist per-month, we simply have one charge per month in our index
+            N = load.resample("M").nearest().count()
+        else:
+            raise UnknownRateStructure("Unknown meter charge unit: {}".format())
+        cost = N*self.schedule.meter
         return cost.rename("cost")
 
     def calculate_total(self, load_kw):

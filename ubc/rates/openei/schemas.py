@@ -54,3 +54,5 @@ class FlatDemand:
 class Meter:
     
     path = URDBPath("fixedchargefirstmeter")
+
+    charge_unit = URDBPath("fixedchargeunits")

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ubc"
-version = "0.0.4"
+version = "0.0.5"
 description = "Utility Bill Calculator"
 authors = ["Thomas Tu <thomasthetu@gmail.com>"]
 

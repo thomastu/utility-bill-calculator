@@ -138,6 +138,11 @@ class RateSchedule(AbstractRate):
         return schedule
 
     @property
+    def meter_charge_unit(self):
+        rate = self.rate
+        return Meter.charge_unit.search(rate)
+
+    @property
     def meter(self):
         rate = self.rate
         return Meter.path.search(rate)
