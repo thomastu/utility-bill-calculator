@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from pandas import Timedelta
+from pandas import Timedelta, NA
 
 from ubc.rates.abstract import AbstractRate
 
@@ -66,7 +66,9 @@ class SingleSite:
         schedule_grain = ["is_weekday", "month", "hour"]
 
         # Assign rates to the provided load data.
-        rates = self.schedule.demand.merge(
+        demand_rates = self.schedule.demand
+
+        rates = demand_rates.merge(
             load.reset_index(),
             right_on=load_grain,
             left_on=schedule_grain,
@@ -74,6 +76,10 @@ class SingleSite:
         )[[load.index.name, load.name, "rate", "schedule_id"]]
         # Calculate max demand over 15 min. period for each month
         
+        if demand_rates.empty:
+            rates["schedule_id"] = rates["schedule_id"].fillna(int(0))
+            rates["rate"] = NA
+
         rates[f"cost"] = rates[load.name] * rates["rate"]
         rates = rates.set_index(load.index.name).sort_index()
         rates.rename(columns={"rate": f"{load.name}_rate"}, inplace=True)

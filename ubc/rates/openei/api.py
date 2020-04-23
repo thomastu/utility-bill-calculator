@@ -82,6 +82,7 @@ class RateSchedule(AbstractRate):
     def demand(self):
         if self._demand is None:
             self._demand = self._parse_tou_schedule(Demand)
+
         return self._demand
 
     def _parse_tou_schedule(self, schema):
