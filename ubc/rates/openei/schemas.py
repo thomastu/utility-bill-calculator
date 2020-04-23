@@ -34,6 +34,8 @@ class Energy:
 
     weekday_schedule = URDBPath("energyweekdayschedule", is_weekday=True)
 
+    attrs = URDBPath("energyattrs")
+
 
 class Demand:
 
@@ -43,6 +45,7 @@ class Demand:
 
     weekday_schedule = URDBPath("demandweekdayschedule", is_weekday=True)
 
+    attrs = URDBPath("demandattrs")
 
 class FlatDemand:
 

@@ -11,6 +11,10 @@ from .schemas import URDBMeta, Energy, Demand, FlatDemand, Meter
 root = "https://api.openei.org"
 
 
+class UnknownRateStructure(Exception):
+    pass
+
+
 @dataclass
 class RateSchedule(AbstractRate):
 
@@ -136,6 +140,55 @@ class RateSchedule(AbstractRate):
         schedule["month"] += 1
         schedule["rate"] = schedule["schedule_id"].map(rate)
         return schedule
+
+    def _parse_charge_period(self, attrs, period_attr):
+        """
+
+        Args:
+            attrs (list[dict]): List of dictionaries from openEI.
+            period_attr (str): One of "season" or "period"
+        """
+        component_parser = {
+            "season": lambda x: x.split(":", 1)[0].split("-")[1].title(),
+            "period": lambda x: x.split(":", 1)[1].title(),
+        }
+        try:
+            parser = component_parser[period_attr]
+        except KeyError:
+            raise Exception("Invalid period attribute")
+
+        components = {}
+
+        for rate_attribute in attrs:
+            if not len(rate_attribute) == 1:
+                raise UnknownRateStructure("Expected 1 attribute per rate attribute list.")
+            slug, schedule_id = list(rate_attribute.items())[0]
+            # Filter for only seasons/periods.
+            # e.g. "TOU-winter:Off-Peak"
+            if ":" not in slug:
+                continue
+            # 0-index the schedule id to be internally consistent
+            schedule_id = int(schedule_id) - 1
+            period = parser(slug)
+            components[schedule_id] = period
+        return components
+
+    @property
+    def seasons(self):
+        energy_attrs = Energy.attrs.search(self.rate)
+        return self._parse_charge_period(energy_attrs, "season") 
+
+    @property
+    def energy_periods(self):
+        energy_attrs = Energy.attrs.search(self.rate)
+        return self._parse_charge_period(energy_attrs, "period")
+
+    @property
+    def demand_periods(self):
+        """Mapping between schedule ids in rates and human readable period names.
+        """
+        demand_attrs = Demand.attrs.search(self.rate)
+        return self._parse_charge_period(demand_attrs, "period")
 
     @property
     def meter_charge_unit(self):
