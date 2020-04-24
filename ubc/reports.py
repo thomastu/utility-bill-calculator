@@ -75,17 +75,14 @@ class MonthlyBillReport:
         meter_charges = self.calculator.calculate_meter_charges(self.load).rename("Meter ($)")
         return meter_charges
     
+
     @property
-    def monthly_bill(self):
-        return self.energy.join(self.demand).join(self.meter)
-    
-    @property
-    def total_bill(self):
-        monthly = self.monthly_bill
+    def monthly(self):
+        monthly = self.energy.join(self.demand).join(self.meter)
         billing_cols = monthly.columns[monthly.columns.str.contains(r"\(\$\)")]
         monthly["Total ($)"] = monthly[billing_cols].sum(axis=1).rename("Total ($)")
         return monthly.rename_axis("Month")
     
     @property
-    def annual_total(self):
-        return self.total_bill["Total ($)"].sum()
+    def annual(self):
+        return self.monthly.sum(axis=0).rename(self.name)
