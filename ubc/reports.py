@@ -59,7 +59,7 @@ class MonthlyBillReport:
         )
 
         for dup_col in peak_charges.columns[peak_charges.columns.duplicated()]:
-            S = peak_charges[dup_col].sum()
+            S = peak_charges[dup_col].sum(axis=1)
             peak_charges.drop(columns=dup_col, inplace=True)
             peak_charges[dup_col] = S
 
