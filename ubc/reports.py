@@ -54,10 +54,14 @@ class MonthlyBillReport:
         peak_charges = self.calculator.calculate_demand_charges(self.load).rename(
             columns=cols
         ).rename(
-            # These tiers are specific to the B-19R rate!
             columns=self.calculator.schedule.demand_periods,
             level=1
         )
+
+        for dup_col in peak_charges.columns[peak_charges.columns.duplicated()]:
+            S = peak_charges[dup_col].sum()
+            peak_charges.drop(columns=dup_col, inplace=True)
+            peak_charges[dup_col] = S
 
         peak_charges = peak_charges[list(cols.values())]
         peak_charges.columns = peak_charges.columns.map(' - '.join)
@@ -72,17 +76,18 @@ class MonthlyBillReport:
 
     @property
     def meter(self):
-        meter_charges = self.calculator.calculate_meter_charges(self.load).rename("Meter ($)")
+        meter_charges = self.calculator.calculate_meter_charges(
+            self.load).rename("Meter ($)")
         return meter_charges
-    
 
     @property
     def monthly(self):
         monthly = self.energy.join(self.demand).join(self.meter)
         billing_cols = monthly.columns[monthly.columns.str.contains(r"\(\$\)")]
-        monthly["Total ($)"] = monthly[billing_cols].sum(axis=1).rename("Total ($)")
+        monthly["Total ($)"] = monthly[billing_cols].sum(
+            axis=1).rename("Total ($)")
         return monthly.rename_axis("Month")
-    
+
     @property
     def annual(self):
         return self.monthly.sum(axis=0).rename(self.name)
