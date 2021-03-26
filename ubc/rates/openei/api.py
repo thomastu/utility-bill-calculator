@@ -82,7 +82,6 @@ class RateSchedule(AbstractRate):
     def demand(self):
         if self._demand is None:
             self._demand = self._parse_tou_schedule(Demand)
-
         return self._demand
 
     def _parse_tou_schedule(self, schema):
@@ -177,19 +176,30 @@ class RateSchedule(AbstractRate):
     @property
     def seasons(self):
         energy_attrs = Energy.attrs.search(self.rate)
-        return self._parse_charge_period(energy_attrs, "season") 
+        if energy_attrs:
+            return self._parse_charge_period(energy_attrs, "season") 
+        else:
+            return {i: f"Season-{i}" for i, rate in Energy(Demand.path.search(self.rate))}
 
     @property
     def energy_periods(self):
         energy_attrs = Energy.attrs.search(self.rate)
-        return self._parse_charge_period(energy_attrs, "period")
+        if energy_attrs:
+            return self._parse_charge_period(energy_attrs, "period")
+        else:
+            return {i: f"Period-{i}" for i, rate in Energy(Demand.path.search(self.rate))}
 
     @property
     def demand_periods(self):
         """Mapping between schedule ids in rates and human readable period names.
         """
         demand_attrs = Demand.attrs.search(self.rate)
-        return self._parse_charge_period(demand_attrs, "period")
+        # Not every rate has descriptive attributes for the demand schedule
+        if demand_attrs:
+            demand_periods = self._parse_charge_period(demand_attrs, "period")
+        else:
+            demand_periods = {i: f"Period-{i}" for i, rate in enumerate(Demand.path.search(self.rate))}
+        return demand_periods
 
     @property
     def meter_charge_unit(self):
