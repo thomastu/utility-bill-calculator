@@ -29,12 +29,18 @@ calculator = SingleSite(rate)
 
 idx = pd.date_range(start="Jan 1st, 2019", end="Dec 31st, 2019 23:59:00", freq="30 min")
 load = pd.Series(pd.np.random.random(len(idx)), index=idx)
-load.name = "kWh"
+load.name = "kW"
 
 calculator.calculate_energy_charges(load)
 calculator.calculate_demand_charges(load)
 calculator.calculate_flatdemand_charges(load)
 calculator.calculate_meter_charges(load)
+
+# Generate a pretty-ish report for reporting
+from ubc.reports import MonthlyBillReport
+
+report_generator = MonthlyBillReport(load)
+print(report_generator.monthly)
 ```
 
 # Disclaimer
