@@ -1,12 +1,17 @@
 import pandas as pd
 from dataclasses import dataclass
 
-from .calculator import SingleSite
+from .calculator import SingleSite, DELTA_HOUR
 
 
 @dataclass
 class MonthlyBillReport:
     """Create a monthly bill report with support for TOU-specific rates.
+    
+    Args:
+        load (pd.Series): Timeseries of average demand at each timestep.
+        name (str): Name of report (Currently unused)
+        calculator: Calculator instance
     """
 
     load: pd.Series
@@ -76,8 +81,9 @@ class MonthlyBillReport:
     @property
     def energy(self):
         energy_cols = {"cost": "Energy ($)", "kWh": "Energy (kWh)"}
+        interval = self.load.index.freq.delta / DELTA_HOUR
         energy_charges = self.calculator.calculate_energy_charges(
-            self.load.rename("kWh")
+            (self.load * interval).rename("kWh")
         ).rename(columns=energy_cols)
         return energy_charges[list(energy_cols.values())].resample("M").sum()
 
